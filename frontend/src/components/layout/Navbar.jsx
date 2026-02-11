@@ -6,17 +6,15 @@ import Notifications from "../../pages/notifications/Notifications";
 const Navbar = () => {
   const { logout } = useAuth();
 
-  // get user from localStorage
+  // Get user info from context or localStorage
   const user = JSON.parse(localStorage.getItem("user"));
 
   return (
     <AppBar position="static" color="default" elevation={1}>
       <Toolbar className="flex justify-between">
-
         <Typography variant="h6" className="text-indigo-600 font-bold">
           SmartTask
         </Typography>
-
 
         <div className="flex items-center gap-4">
           {user && (
@@ -28,8 +26,10 @@ const Navbar = () => {
             </Typography>
           )}
 
+          {/* Notification icon + panel */}
           <Notifications />
 
+          {/* Logout button */}
           <IconButton
             onClick={logout}
             color="error"
