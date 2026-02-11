@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import {IconButton,List,ListItem,ListItemText,Button,Badge,Paper,Typography} from "@mui/material";
+import {IconButton, List, ListItem,ListItemText,Button, Badge,Paper,Typography,Stack,} from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { getNotifications, markAsRead, respondNotification } from "../../api/notificationApi";
 import AppSnackbar from "../../components/common/AppSnackbar";
@@ -11,14 +11,16 @@ const Notifications = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
   const [openPanel, setOpenPanel] = useState(false);
 
+  // Fetch notifications from backend
   const fetchNotifications = async () => {
     setLoading(true);
     try {
       const res = await getNotifications();
-      // Filter out notifications that are read and invites already responded
-      const filtered = res.data.notifications?.filter(
-        (n) => !n.isRead && (n.type !== "TEAM_INVITE" || !n.responded)
-      ) || [];
+      // Show unread notifications or pending invites
+      const filtered =
+        res.data.notifications?.filter(
+          (n) => !n.isRead && (n.type !== "TEAM_INVITE" || !n.responded)
+        ) || [];
       setNotifications(filtered);
     } catch (err) {
       console.error("Fetch notifications error:", err.response?.data || err.message);
@@ -32,10 +34,10 @@ const Notifications = () => {
     fetchNotifications();
   }, []);
 
+  // Mark notification as read
   const handleMarkAsRead = async (id) => {
     try {
       await markAsRead(id);
-      // Remove the notification from state after marking read
       setNotifications((prev) => prev.filter((n) => n._id !== id));
     } catch (err) {
       console.error("Mark as read error:", err.response?.data || err.message);
@@ -43,11 +45,11 @@ const Notifications = () => {
     }
   };
 
+  // Respond to team invite
   const handleRespondInvite = async (id, accept) => {
     try {
       const responseString = accept ? "Accepted" : "Declined";
       const res = await respondNotification(id, { response: responseString });
-      // Remove invite notification immediately
       setNotifications((prev) => prev.filter((n) => n._id !== id));
       setSnackbar({
         open: true,
@@ -60,7 +62,21 @@ const Notifications = () => {
     }
   };
 
-  const unreadCount = notifications.length; // only showing unread/pending invites
+  const unreadCount = notifications.length;
+
+  // Generate message for each notification
+  const getNotificationMessage = (n) => {
+    if (n.type === "TASK_ASSIGNED") {
+      return `${n.sender?.name || "Someone"} assigned you the task "${n.task?.title || ""}"`;
+    }
+    if (n.type === "TASK_DUE") {
+      return `${n.assignee?.name || "A user"} completed the task "${n.task?.title || ""}"`;
+    }
+    if (n.type === "TEAM_INVITE") {
+      return `${n.sender?.name || "Someone"} invited you to join the team "${n.team?.name || ""}"`;
+    }
+    return n.message || "You have a new notification";
+  };
 
   return (
     <div className="relative">
@@ -74,39 +90,39 @@ const Notifications = () => {
       {/* Notification panel */}
       {openPanel && (
         <Paper
-          elevation={3}
-          className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto p-2 z-50"
+          elevation={6}
+          className="absolute right-0 mt-2 w-96 max-h-[450px] overflow-y-auto p-3 rounded-2xl shadow-lg z-50 bg-white"
         >
-          {loading && <Typography className="text-gray-500">Loading...</Typography>}
+          <Typography variant="h6" className="mb-3 font-bold text-slate-900">
+            Notifications
+          </Typography>
+
+          {loading && <Typography className="text-gray-500 text-center">Loading...</Typography>}
           {!loading && notifications.length === 0 && (
-            <Typography className="text-gray-500">No notifications</Typography>
+            <Typography className="text-gray-500 text-center">No notifications</Typography>
           )}
 
-          <List>
+          <List className="space-y-2">
             {notifications
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
               .map((n) => {
-                let message = "";
-                if (n.type === "TASK_ASSIGNED") {
-                  message = `${n.sender?.name} assigned you: ${n.task?.title}`;
-                } else if (n.type === "TEAM_INVITE") {
-                  message = `${n.sender?.name} invited you to a team`;
-                } else {
-                  message = n.message || "Notification";
-                }
+                const message = getNotificationMessage(n);
+                const isTaskCompleted = n.type === "TASK_COMPLETED";
 
                 return (
                   <ListItem
                     key={n._id}
-                    className={`flex flex-col p-2 mb-1 rounded bg-yellow-100`}
+                    className={`flex flex-col p-3 rounded-xl border ${
+                      isTaskCompleted ? "border-green-400 bg-green-50" : "border-gray-200 bg-yellow-50"
+                    }`}
                   >
-                    <div className="flex justify-between items-center w-full">
+                    <Stack direction="row" justifyContent="space-between" alignItems="start">
                       <ListItemText
                         primary={message}
-                        secondary={formatDistanceToNow(new Date(n.createdAt), {
-                          addSuffix: true,
-                        })}
+                        secondary={formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                       />
+
+                      {/* Mark read button for non-invite notifications */}
                       {n.type !== "TEAM_INVITE" && (
                         <Button
                           size="small"
@@ -116,10 +132,11 @@ const Notifications = () => {
                           Mark Read
                         </Button>
                       )}
-                    </div>
+                    </Stack>
 
+                    {/* Accept/Reject buttons for invites */}
                     {n.type === "TEAM_INVITE" && (
-                      <div className="flex gap-2 mt-1">
+                      <Stack direction="row" spacing={1} mt={2}>
                         <Button
                           size="small"
                           color="primary"
@@ -136,7 +153,7 @@ const Notifications = () => {
                         >
                           Reject
                         </Button>
-                      </div>
+                      </Stack>
                     )}
                   </ListItem>
                 );

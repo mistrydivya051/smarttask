@@ -1,5 +1,5 @@
 import express from "express";
-import { createTeam, inviteMember, respondToInvite, getTeamDetails,getTeamMembers,removeMember, getReceivedInvites, getAllTeams} from "../controllers/teamController.js";
+import { createTeam, inviteMember, respondToInvite, getTeamDetails,getTeamMembers,removeMember, getReceivedInvites, getAllTeams, updateTeam, deleteTeam} from "../controllers/teamController.js";
 import { createTeamValidator, inviteMemberValidator, respondMemberInviteValidator } from "../validators/teamValidators.js";
 import validate from "../middleware/validateMiddleware.js";
 import protect from "../middleware/authMiddleware.js";
@@ -14,6 +14,8 @@ router.post("/invite/:teamId", protect, inviteMemberValidator, validate, inviteM
 router.post("/respond-invite/:notificationId", protect, respondMemberInviteValidator, validate, respondToInvite);
 router.get("/members/:teamId", protect, getTeamMembers);
 router.delete("/:teamId/remove/:memberId", protect, removeMember);
+router.put("/update/:teamId",protect, createTeamValidator, validate, updateTeam);
+router.delete("/delete/:teamId",protect, deleteTeam);
 
 
 export default router;

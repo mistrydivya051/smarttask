@@ -10,3 +10,6 @@ export const respondInvite = (notificationId, data) =>
 export const getReceivedInvites = () => api.get("/team/received-invites");
 export const removeMember = (teamId, memberId) =>
   api.delete(`/team/${teamId}/remove/${memberId}`);
+export const updateTeam = (teamId, data) => api.put(`/team/update/${teamId}`, data);
+export const deleteTeam = (teamId) => api.delete(`/team/delete/${teamId}`);
+

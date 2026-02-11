@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { TextField, Button, Paper } from "@mui/material";
+import { TextField, Button, Paper, Divider } from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 import AppSnackbar from "../../components/common/AppSnackbar";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const { login } = useAuth();
@@ -11,46 +12,145 @@ const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     try {
       await login(form);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.errors?.[0] || "Login failed");
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.errors?.[0] ||
+          "Login failed"
+      );
       setOpen(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
-      <Paper className="p-8 w-full max-w-md shadow-xl rounded-xl">
-        <h2 className="text-3xl font-bold text-center mb-6">SmartTask Login</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <TextField label="Email" fullWidth value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <TextField label="Password" type="password" fullWidth value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}/>
-
-          <Button type="submit" variant="contained" fullWidth size="large">
-            Login
-          </Button>
-        </form>
-
-        <p className="text-center mt-4">
-          No account?{" "}
-          <Link to="/register" className="text-indigo-600 font-semibold">
-            Register
-          </Link>
-        </p>
-      </Paper>
-
-{/* snackbar notification */}
-      <AppSnackbar
-        open={open}
-        message={error}
-        onClose={() => setOpen(false)}
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4">
+      {/* soft blobs */}
+      <motion.div
+        animate={{ x: [0, 18, 0], y: [0, 12, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-indigo-300/40 blur-3xl"
       />
+      <motion.div
+        animate={{ x: [0, -15, 0], y: [0, -10, 0] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-purple-300/40 blur-3xl"
+      />
+
+      {/* Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55 }}
+        className="relative w-full max-w-md"
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            borderRadius: "22px",
+            background: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid rgba(99,102,241,0.15)",
+            boxShadow: "0 18px 40px rgba(99,102,241,0.18)",
+          }}
+        >
+          {/* Title */}
+          <div className="text-center">
+            <motion.h2
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-3xl font-extrabold tracking-tight"
+            >
+              <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                SmartTask
+              </span>
+            </motion.h2>
+
+            <p className="text-sm text-slate-600 mt-1">
+              Welcome back — login to continue
+            </p>
+          </div>
+
+          <Divider className="!my-6" />
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <TextField
+              label="Email"
+              fullWidth
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "14px",
+                  background: "#fff",
+                },
+              }}
+            />
+
+            <TextField
+              label="Password"
+              type="password"
+              fullWidth
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "14px",
+                  background: "#fff",
+                },
+              }}
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              size="large"
+              disabled={loading}
+              sx={{
+                py: 1.4,
+                borderRadius: "14px",
+                fontWeight: 800,
+                textTransform: "none",
+                fontSize: "16px",
+                background:
+                  "linear-gradient(90deg, #4f46e5, #7c3aed, #d946ef)",
+                boxShadow: "0 12px 28px rgba(99,102,241,0.28)",
+                "&:hover": {
+                  background:
+                    "linear-gradient(90deg, #4338ca, #6d28d9, #c026d3)",
+                },
+              }}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </Button>
+          </form>
+
+          <p className="text-center mt-6 text-sm text-slate-700">
+            No account?{" "}
+            <Link
+              to="/register"
+              className="text-indigo-600 font-semibold hover:underline"
+            >
+              Register
+            </Link>
+          </p>
+        </Paper>
+      </motion.div>
+
+      <AppSnackbar open={open} message={error} onClose={() => setOpen(false)} />
     </div>
   );
 };

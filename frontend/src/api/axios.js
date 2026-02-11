@@ -1,7 +1,17 @@
 import axios from "axios";
 
+//for local
+// const api = axios.create({
+//   baseURL: "http://localhost:3000/api",
+//   withCredentials: true,
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+// });
+
+//for render
 const api = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: "https://smarttask-backend-bcg7.onrender.com/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

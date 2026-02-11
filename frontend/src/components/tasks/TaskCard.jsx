@@ -1,156 +1,13 @@
-// import { useState } from "react";
-// import { Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem } from "@mui/material";
-// import { deleteTask, updateTask } from "../../api/taskApi";
-// import AppSnackbar from "../common/AppSnackbar";
-
-// const TaskCard = ({ task, teamMembers = [], onUpdated }) => {
-//   const [openUpdate, setOpenUpdate] = useState(false);
-//   const [title, setTitle] = useState(task.title);
-//   const [description, setDescription] = useState(task.description || "");
-//   const [status, setStatus] = useState(task.status || "Pending");
-//   const [priority, setPriority] = useState(task.priority || "Medium");
-//   const [assignedTo, setAssignedTo] = useState(task.assignedTo?._id || "");
-//   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.split("T")[0] : "");
-
-//   const [loading, setLoading] = useState(false);
-//   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
-
-//   // delete task
-//   const handleDelete = async () => {
-//     if (!window.confirm("Are you sure you want to delete this task?")) return;
-
-//     try {
-//       await deleteTask(task._id);
-//       onUpdated();
-//     } catch (err) {
-//       console.error("Delete task error:", err.response?.data || err.message);
-//       setSnackbar({ open: true, message: err.response?.data?.message || "Failed to delete task", severity: "error" });
-//     }
-//   };
-
-//   // update task
-//   const handleUpdate = async () => {
-//     if (!title.trim()) {
-//       setSnackbar({ open: true, message: "Title is required", severity: "error" });
-//       return;
-//     }
-
-//     setLoading(true);
-//     try {
-//       await updateTask(task._id, {
-//         title,
-//         description,
-//         status,
-//         priority,
-//         dueDate: dueDate || null,
-//         assignedTo: assignedTo || null,
-//       });
-
-//       setSnackbar({ open: true, message: "Task updated successfully!", severity: "success" });
-//       setOpenUpdate(false);
-//       onUpdated();
-//     } catch (err) {
-//       console.error("Update task error:", err.response?.data || err.message);
-//       setSnackbar({ open: true, message: err.response?.data?.message || "Failed to update task", severity: "error" });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // color for status and priority
-//   const statusColors = { Pending: "bg-yellow-100 text-yellow-800", Completed: "bg-green-100 text-green-800", InProgress: "bg-blue-100 text-blue-800" };
-//   const priorityColors = { Low: "bg-green-100 text-green-800", Medium: "bg-yellow-100 text-yellow-800", High: "bg-red-100 text-red-800" };
-
-//   return (
-//     <>
-//       <Paper className="p-4 shadow-md flex flex-col justify-between">
-//         <div>
-//           <h4 className="font-semibold text-lg">{task.title}</h4>
-//           <p className="text-gray-600">{task.description}</p>
-//           <div className="flex gap-2 mt-2">
-//             <span className={`px-2 py-1 rounded text-sm ${statusColors[task.status] || "bg-gray-100 text-gray-800"}`}>
-//               {task.status || "Pending"}
-//             </span>
-//             <span className={`px-2 py-1 rounded text-sm ${priorityColors[task.priority] || "bg-gray-100 text-gray-800"}`}>
-//               {task.priority || "Medium"}
-//             </span>
-//           </div>
-//           {task.assignedTo && <p className="text-sm mt-1">Assignee: {task.assignedTo.name}</p>}
-//           {task.dueDate && <p className="text-sm mt-1">Due: {new Date(task.dueDate).toLocaleDateString()}</p>}
-//         </div>
-
-//         <div className="flex gap-2 mt-4">
-//           <Button size="small" variant="outlined" color="primary" onClick={() => setOpenUpdate(true)}>
-//             Update
-//           </Button>
-//           <Button size="small" variant="outlined" color="error" onClick={handleDelete}>
-//             Delete
-//           </Button>
-//         </div>
-//       </Paper>
-
-//       {/* Update Task Dialog */}
-//       <Dialog open={openUpdate} onClose={() => setOpenUpdate(false)} fullWidth maxWidth="sm">
-//         <DialogTitle>Update Task</DialogTitle>
-//         <DialogContent className="space-y-4 mt-2">
-//           <TextField label="Title" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} disabled={loading} />
-//           <TextField label="Description" fullWidth multiline minRows={3} value={description} onChange={(e) => setDescription(e.target.value)} disabled={loading} />
-//           <TextField select label="Status" fullWidth value={status} onChange={(e) => setStatus(e.target.value)} disabled={loading}>
-//             <MenuItem value="Pending">Pending</MenuItem>
-//             <MenuItem value="In Progress">In Progress</MenuItem>
-//             <MenuItem value="Completed">Completed</MenuItem>
-//           </TextField>
-//           <TextField select label="Priority" fullWidth value={priority} onChange={(e) => setPriority(e.target.value)} disabled={loading}>
-//             <MenuItem value="Low">Low</MenuItem>
-//             <MenuItem value="Medium">Medium</MenuItem>
-//             <MenuItem value="High">High</MenuItem>
-//           </TextField>
-//           <TextField select label="Assign To" fullWidth value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} disabled={loading || !teamMembers.length}>
-//             <MenuItem value="">Unassigned</MenuItem>
-//             {teamMembers.map((m) => (
-//               <MenuItem key={m.user._id} value={m.user._id}>
-//                 {m.user.name} ({m.user.email})
-//               </MenuItem>
-//             ))}
-//           </TextField>
-//           <TextField
-//             label="Due Date" type="date" fullWidth value={dueDate} onChange={(e) => setDueDate(e.target.value)} InputLabelProps={{ shrink: true }} disabled={loading}/>
-//         </DialogContent>
-//         <DialogActions>
-//           <Button onClick={() => setOpenUpdate(false)} disabled={loading}>Cancel</Button>
-//           <Button variant="contained" onClick={handleUpdate} disabled={loading}>
-//             {loading ? "Updating..." : "Update"}
-//           </Button>
-//         </DialogActions>
-//       </Dialog>
-
-//       {/* snackbar notification */}
-//       <AppSnackbar
-//         open={snackbar.open}
-//         message={snackbar.message}
-//         severity={snackbar.severity}
-//         onClose={() => setSnackbar({ ...snackbar, open: false })}
-//         anchorOrigin={{ vertical: "top", horizontal: "right" }}
-//       />
-//     </>
-//   );
-// };
-
-// export default TaskCard;
-
 import { useState } from "react";
-import {
-  Paper,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem
-} from "@mui/material";
-import { deleteTask, updateTask } from "../../api/taskApi";
+import { Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Stack, Typography, IconButton, } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PendingIcon from "@mui/icons-material/Pending";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
+import LowPriorityIcon from "@mui/icons-material/LowPriority";
 import AppSnackbar from "../common/AppSnackbar";
+import { deleteTask, updateTask } from "../../api/taskApi";
 
 const TaskCard = ({ task, teamMembers = [], currentUserId, isOwner, onUpdated }) => {
   const [openUpdate, setOpenUpdate] = useState(false);
@@ -160,7 +17,6 @@ const TaskCard = ({ task, teamMembers = [], currentUserId, isOwner, onUpdated })
   const [priority, setPriority] = useState(task.priority || "Medium");
   const [assignedTo, setAssignedTo] = useState(task.assignedTo?._id || "");
   const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.split("T")[0] : "");
-
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
 
@@ -176,12 +32,8 @@ const TaskCard = ({ task, teamMembers = [], currentUserId, isOwner, onUpdated })
       setSnackbar({ open: true, message: "Task deleted successfully!", severity: "success" });
       onUpdated();
     } catch (err) {
-      console.error("Delete task error:", err.response?.data || err.message);
-      setSnackbar({
-        open: true,
-        message: err.response?.data?.message || "Failed to delete task",
-        severity: "error"
-      });
+      console.error(err);
+      setSnackbar({ open: true, message: err.response?.data?.message || "Failed to delete task", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -195,7 +47,6 @@ const TaskCard = ({ task, teamMembers = [], currentUserId, isOwner, onUpdated })
     }
 
     setLoading(true);
-
     const payload = isOwner
       ? { title, description, status, priority, dueDate: dueDate || null, assignedTo: assignedTo || null }
       : { status };
@@ -206,110 +57,187 @@ const TaskCard = ({ task, teamMembers = [], currentUserId, isOwner, onUpdated })
       setOpenUpdate(false);
       onUpdated();
     } catch (err) {
-      console.error("Update task error:", err.response?.data || err.message);
-      setSnackbar({
-        open: true,
-        message: err.response?.data?.message || "Failed to update task",
-        severity: "error"
-      });
+      console.error(err);
+      setSnackbar({ open: true, message: err.response?.data?.message || "Failed to update task", severity: "error" });
     } finally {
       setLoading(false);
     }
   };
 
-  // Colors
-  const statusColors = {
-    "To Do": "bg-yellow-100 text-yellow-800",
-    "In Progress": "bg-blue-100 text-blue-800",
-    Completed: "bg-green-100 text-green-800"
+  // Priority icons
+  const priorityIcon = {
+    Low: <LowPriorityIcon fontSize="small" className="text-green-600" />,
+    Medium: <PriorityHighIcon fontSize="small" className="text-yellow-600" />,
+    High: <PriorityHighIcon fontSize="small" className="text-red-600" />,
   };
-  const priorityColors = {
-    Low: "bg-green-100 text-green-800",
-    Medium: "bg-yellow-100 text-yellow-800",
-    High: "bg-red-100 text-red-800"
+
+  // Status icons
+  const statusIcon = {
+    "To Do": <PendingIcon fontSize="small" className="text-yellow-600" />,
+    "In Progress": <PendingIcon fontSize="small" className="text-blue-600" />,
+    Completed: <CheckCircleIcon fontSize="small" className="text-green-600" />,
   };
 
   return (
     <>
-      <Paper className="p-4 shadow-md flex flex-col justify-between">
-        <div>
-          <h4 className="font-semibold text-lg">{task.title}</h4>
-          <p className="text-gray-600">{task.description}</p>
-          <div className="flex gap-2 mt-2">
-            <span className={`px-2 py-1 rounded text-sm ${statusColors[task.status] || "bg-gray-100 text-gray-800"}`}>
-              {task.status || "To Do"}
-            </span>
-            <span className={`px-2 py-1 rounded text-sm ${priorityColors[task.priority] || "bg-gray-100 text-gray-800"}`}>
-              {task.priority || "Medium"}
-            </span>
-          </div>
-          {task.assignedTo && <p className="text-sm mt-1">Assignee: {task.assignedTo.name}</p>}
-          {task.dueDate && <p className="text-sm mt-1">Due: {new Date(task.dueDate).toLocaleDateString()}</p>}
-        </div>
+      <Paper className="p-4 rounded-2xl shadow-lg flex flex-col justify-between">
+        <Stack spacing={1}>
+          <Typography variant="h6" fontWeight="bold">{task.title}</Typography>
+          {description && <Typography variant="body2" color="text.secondary">{description}</Typography>}
 
-        <div className="flex gap-2 mt-4">
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={0.5} alignItems="center" className="px-2 py-1 rounded bg-gray-100">
+              {statusIcon[task.status]} <Typography variant="caption">{task.status}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.5} alignItems="center" className="px-2 py-1 rounded bg-gray-100">
+              {priorityIcon[task.priority]} <Typography variant="caption">{task.priority}</Typography>
+            </Stack>
+          </Stack>
+
+          {task.assignedTo && <Typography variant="caption">Assignee: {task.assignedTo.name}</Typography>}
+          {task.createdBy && (
+            <Typography variant="caption" color="text.secondary">
+              Created by: {task.createdBy.name}
+            </Typography>
+          )}
+          {task.dueDate && <Typography variant="caption">Due: {new Date(task.dueDate).toLocaleDateString()}</Typography>}
+        </Stack>
+
+        <Stack direction="row" spacing={1} mt={2}>
           {(isOwner || isAssignee) && (
-            <Button size="small" variant="outlined" color="primary" onClick={() => setOpenUpdate(true)}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={() => setOpenUpdate(true)}
+            >
               Update
             </Button>
           )}
           {isOwner && (
-            <Button size="small" variant="outlined" color="error" onClick={handleDelete}>
+            <Button
+              variant="outlined"
+              color="error"
+              size="small"
+              startIcon={<DeleteIcon />}
+              onClick={handleDelete}
+            >
               Delete
             </Button>
           )}
-        </div>
+        </Stack>
       </Paper>
 
       {/* Update Task Dialog */}
       <Dialog open={openUpdate} onClose={() => setOpenUpdate(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Update Task</DialogTitle>
-        <DialogContent className="space-y-4 mt-2">
-          {isOwner && (
-            <>
-              <TextField label="Title" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} disabled={loading} />
-              <TextField label="Description" fullWidth multiline minRows={3} value={description} onChange={(e) => setDescription(e.target.value)} disabled={loading} />
-              <TextField select label="Priority" fullWidth value={priority} onChange={(e) => setPriority(e.target.value)} disabled={loading}>
-                <MenuItem value="Low">Low</MenuItem>
-                <MenuItem value="Medium">Medium</MenuItem>
-                <MenuItem value="High">High</MenuItem>
-              </TextField>
-              <TextField select label="Assign To" fullWidth value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} disabled={loading || !teamMembers.length}>
-                <MenuItem value="">Unassigned</MenuItem>
-                {teamMembers.map((m) => (
-                  <MenuItem key={m.user._id} value={m.user._id}>
-                    {m.user.name} ({m.user.email})
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                label="Due Date"
-                type="date"
-                fullWidth
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                disabled={loading}
-              />
-            </>
-          )}
+        <Paper className="p-6 rounded-2xl shadow-lg">
+          <DialogTitle
+            className="text-center text-2xl font-bold mb-2"
+            sx={{
+              background: "linear-gradient(90deg, #6366f1, #a855f7)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Update Task
+          </DialogTitle>
 
-          {/* Status for both owner & assignee */}
-          <TextField select label="Status" fullWidth value={status} onChange={(e) => setStatus(e.target.value)} disabled={loading}>
-            <MenuItem value="To Do">To Do</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Completed">Completed</MenuItem>
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenUpdate(false)} disabled={loading}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpdate} disabled={loading}>
-            {loading ? "Updating..." : "Update"}
-          </Button>
-        </DialogActions>
+          <DialogContent className="space-y-4 mt-2">
+            {/* Fields editable only for Owner */}
+            <TextField
+            id="task-title"
+              label="Title"
+              fullWidth
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={loading || !isOwner}  // <-- Owner check
+            />
+            <TextField
+              id="task-description"
+              label="Description"
+              fullWidth
+              multiline
+              minRows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={loading || !isOwner} // <-- Owner check
+            />
+            <TextField
+            id="task-priority"
+              select
+              label="Priority"
+              fullWidth
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              disabled={loading || !isOwner} // <-- Owner check
+            >
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+            </TextField>
+            <TextField
+            id="task-assignedto"
+              select
+              label="Assign To"
+              fullWidth
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+              disabled={loading || !isOwner || !teamMembers.length} // <-- Owner check + member check
+            >
+              <MenuItem value="">Unassigned</MenuItem>
+              {teamMembers.map((m) => (
+                <MenuItem key={m.user._id} value={m.user._id}>
+                  {m.user.name} ({m.user.email})
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+            id="task-duedate"
+              label="Due Date"
+              type="date"
+              fullWidth
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              disabled={loading || !isOwner} // <-- Owner check
+            />
+
+            {/* Status field editable for everyone */}
+            <TextField
+            id="task-status"
+              select
+              label="Status"
+              fullWidth
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={loading} // Members and Owner can update
+            >
+              <MenuItem value="To Do">To Do</MenuItem>
+              <MenuItem value="In Progress">In Progress</MenuItem>
+              <MenuItem value="Completed">Completed</MenuItem>
+            </TextField>
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={() => setOpenUpdate(false)} disabled={loading}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleUpdate}
+              disabled={loading}
+              sx={{
+                background: "linear-gradient(90deg, #4f46e5, #7c3aed, #d946ef)",
+                fontWeight: "bold",
+              }}
+            >
+              {loading ? "Updating..." : "Update"}
+            </Button>
+          </DialogActions>
+        </Paper>
       </Dialog>
 
-      {/* Snackbar */}
+
       <AppSnackbar
         open={snackbar.open}
         message={snackbar.message}

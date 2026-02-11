@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Paper, Button } from "@mui/material";
+import { Paper, Button, Typography, Box } from "@mui/material";
 import { getTeamMembers, removeMember } from "../../api/teamApi";
 import AppSnackbar from "../common/AppSnackbar";
 
@@ -34,7 +34,7 @@ const TeamMembers = ({ teamId, currentUser, onMembersUpdated }) => {
       await removeMember(teamId, memberId);
       setSnackbar({ open: true, message: "Member removed successfully", severity: "success" });
       fetchMembers();
-      onMembersUpdated && onMembersUpdated(); // optional parent refresh
+      onMembersUpdated && onMembersUpdated(); // parent refresh
     } catch (err) {
       console.error("Failed to remove member:", err.response?.data || err.message);
       setSnackbar({ open: true, message: err.response?.data?.message || "Failed to remove member", severity: "error" });
@@ -42,25 +42,60 @@ const TeamMembers = ({ teamId, currentUser, onMembersUpdated }) => {
   };
 
   return (
-    <Paper className="p-4">
-      <h3 className="text-xl font-bold mb-4">Team Members</h3>
+    <Paper
+      sx={{
+        p: 4,
+        borderRadius: "16px",
+        background: "linear-gradient(135deg, #f3f4f6, #e0e7ff)",
+        boxShadow: 3,
+        mb: 4,
+      }}
+    >
+      <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
+        Team Members
+      </Typography>
 
-      {members.length === 0 && <p>No members found.</p>}
-      <ul className="space-y-2">
-        {members.map((m) => (
-          <li key={m._id} className="flex justify-between items-center">
-            <span>{m.user.name} ({m.role})</span>
-            {/* show Remove button only if current user is owner and the member is not the owner */}
-            {currentUser._id === m.teamOwnerId && m.role !== "Owner" && (
-              <Button variant="outlined" color="error" size="small" onClick={() => handleRemove(m.user._id)} >
-                Remove
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
+      {members.length === 0 ? (
+        <Typography color="gray">No members found.</Typography>
+      ) : (
+        <Box className="space-y-2">
+          {members.map((m) => (
+            <Box
+              key={m._id}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                p: 2,
+                borderRadius: "12px",
+                background: "#fff",
+                boxShadow: 1,
+                mb: 1,
+              }}
+            >
+              <Typography>{m.user.name} ({m.role})</Typography>
 
-  {/* snackbar notification */}
+              {/* Remove button only for owner */}
+              {currentUser._id === m.teamOwnerId && m.role !== "Owner" && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={() => handleRemove(m.user._id)}
+                  sx={{
+                    fontWeight: 600,
+                    "&:hover": { background: "rgba(239,68,68,0.08)" },
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {/* Snackbar */}
       <AppSnackbar
         open={snackbar.open}
         message={snackbar.message}

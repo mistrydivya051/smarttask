@@ -200,32 +200,6 @@ export const removeMember = async (req, res, next) => {
   }
 };
 
-// // Get all teams
-// export const getAllTeams = async (req, res, next) => {
-//   try {
-//     // fetch all teams
-//     const teams = await Team.find().lean();
-
-//     // attach members info to each team
-//     const teamsWithMembers = await Promise.all(
-//       teams.map(async (team) => {
-//         const members = await TeamMember.find({ team: team._id })
-//           .populate("user", "name email")
-//           .select("role user");
-//         return {
-//           ...team,
-//           members,
-//           membersCount: members.length
-//         };
-//       })
-//     );
-
-//     res.json({ teams: teamsWithMembers });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
 
 // Get all teams for logged-in user (owner or member)
 export const getAllTeams = async (req, res, next) => {
@@ -279,6 +253,57 @@ export const getReceivedInvites = async (req, res, next) => {
     }));
 
     res.status(200).json({ invites: formattedInvites });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+// update team info (name, description)
+export const updateTeam = async (req, res, next) => {
+  try {
+    const { teamId } = req.params;
+    const { name, description } = req.body;
+
+    // find team
+    const team = await Team.findById(teamId);
+    if (!team) return res.status(404).json({ message: "Team not found." });
+
+    // only owner can update
+    if (team.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Only team owner can update the team." });
+    }
+
+    // update fields
+    if (name) team.name = name;
+    if (description) team.description = description;
+
+    await team.save();
+
+    res.status(200).json({ message: "Team updated successfully.", team });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// delete team
+export const deleteTeam = async (req, res, next) => {
+  try {
+    const { teamId } = req.params;
+
+    const team = await Team.findById(teamId);
+    if (!team) return res.status(404).json({ message: "Team not found." });
+
+    // only owner can delete
+    if (team.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Only team owner can delete the team." });
+    }
+
+    // delete team and all team members
+    await TeamMember.deleteMany({ team: teamId });
+    await Team.findByIdAndDelete(teamId);
+
+    res.status(200).json({ message: "Team deleted successfully." });
   } catch (error) {
     next(error);
   }

@@ -23,11 +23,24 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(helmet());
 
+//for local
+// app.use(cors({
+//   origin: "http://localhost:5173", // frontend URL
+//   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+//   credentials: true
+// }));
+
+
+//for render
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
-  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  origin: [
+    "http://localhost:5173",
+    "https://smarttask-frontend.onrender.com"
+  ],
   credentials: true
 }));
+
+// app.options("*", cors())
 
 // Routes
 app.use("/api/auth", authRoutes);
