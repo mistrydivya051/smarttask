@@ -11,7 +11,7 @@ import axios from "axios";
 
 //for render
 const api = axios.create({
-  baseURL: "https://smarttask-backend-bcg7.onrender.com/api",
+  baseURL: "https://smarttask-backend-btpx.onrender.com//api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
