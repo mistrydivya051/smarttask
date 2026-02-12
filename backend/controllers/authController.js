@@ -47,3 +47,20 @@ export const login = async (req, res,next) => {
     next(error);
   }
 };
+
+
+// get all users (name and email only)
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().select("name email"); 
+
+    res.status(200).json({
+      message: "Users fetched successfully",
+      count: users.length,
+      users
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

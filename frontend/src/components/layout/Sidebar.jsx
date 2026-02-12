@@ -28,6 +28,11 @@ const Sidebar = () => {
           Dashboard
         </NavLink>
 
+        <NavLink to="/users" className={linkClasses}>
+          <GroupIcon />
+          Users
+        </NavLink>
+
         <NavLink to="/teams" className={linkClasses}>
           <GroupIcon />
           Teams

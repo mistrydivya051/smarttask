@@ -6,6 +6,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import Teams from "./pages/team/Teams";
 import Tasks from "./pages/task/Tasks";
+import Users from "./pages/auth/Users";
 
 function App() {
   
@@ -17,6 +18,9 @@ function App() {
 
         {/* dashboard */}
         <Route path="/" element={ <ProtectedRoute> <Dashboard /> </ProtectedRoute> } />
+
+        {/* users */}
+        <Route path="/users" element={ <ProtectedRoute> <Users /> </ProtectedRoute> }/>
 
         {/* teams */}
         <Route path="/teams" element={ <ProtectedRoute> <Teams /> </ProtectedRoute> } />
