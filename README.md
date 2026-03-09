@@ -106,6 +106,18 @@ http://localhost:5173/
 
 ---
 
+## Live Demo
+
+Backend URL:
+```
+https://smarttask-backend-btpx.onrender.com/
+```
+
+Frontend URL:
+```
+https://smarttask-frontend.onrender.com/
+```
+
 ## Project Structure
 
 ### Backend Structure
